@@ -1,9 +1,106 @@
 <html>
-	<head> </head>
+	<head> 
+		<style>
+			input {
+				width:30px;
+			}
+
+			#logs {
+				width: 334px;
+				height: 200px;
+				border: 1px solid black;
+				margin-top: 10px;
+				margin-bottom: 10px;
+				overflow: auto;
+			}
+		</style>
+	</head>
 	<body>
 		<script src="statemanager.js"></script>
 		<script>
+			window.onload = function () {
+				var i = 0, j, buttons = [], 
+				setButton = function (state, value) {
+					buttons[state].style.backgroundColor = value ? "green" : "red";
+				}, 
+				addLog = function (text, color) {
+					logs.innerHTML += "<span style='color: " + color + "'>" + text + "</span><br/>";
+					logs.scrollTop = logs.scrollHeight; // scroll to the bottom
+				},
+				logs = document.getElementById('logs'),
+				state = stateManager();
 
+				for (; i < 10; ++i) {
+					(function (num) {
+						var button = document.getElementById('state' + num);
+						button.onclick = function () {
+							state.toggle(num);
+						}
+						buttons.push(button);
+						setButton(num, 0);
+					}(i));
+				}
+
+				for (i = 0, j = 9; i < 5; i++, j--) {
+					state.mutex(i, j);
+				}
+
+				state.onStateChanged(function (state, value) {  // Set the global change hook
+					addLog("Button " + state + " was switched " + (value ? "on" : "off"), "black");
+					setButton(state, value);
+				});
+
+				state.onStateChanged(4, function (value) {
+					addLog("The hook from button 4 has been called", "red");
+				});
+
+				state.onStateChanged(9, function (value) {
+					addLog("The hook from button 9 has been called", "blue");
+				});
+			};
 		</script>
+		<h1>State Manager demo</h1>
+		<p>Source: <a href="https://github.com/dreasgrech/statemanager-js" target="_blank">https://github.com/dreasgrech/statemanager-js</a></p>
+		<input type="button" id="state0" value="0"/>
+		<input type="button" id="state1" value="1"/>
+		<input type="button" id="state2" value="2"/>
+		<input type="button" id="state3" value="3"/>
+		<input type="button" id="state4" value="4"/>
+		<input type="button" id="state5" value="5"/>
+		<input type="button" id="state6" value="6"/>
+		<input type="button" id="state7" value="7"/>
+		<input type="button" id="state8" value="8"/>
+		<input type="button" id="state9" value="9"/>
+		<div id="logs"></div>
+
+		<div>
+		Initializing the state manager:
+		<pre>
+state = stateManager();
+		</pre>
+		Setting the mutual exclusive states:
+		<pre>
+for (i = 0, j = 9; i &lt; 5; i++, j--) {
+	state.mutex(i, j);
+}
+		</pre>
+		Setting the global change hook:
+		<pre>
+state.onStateChanged(function (state, value) {
+	addLog("Button " + state + " was switched " + (value ? "on" : "off"), "black");
+	setButton(state, value);
+});
+		</pre>
+		Setting the two custom hooks on buttons 4 and 9:
+		<pre>
+state.onStateChanged(4, function (value) {
+	addLog("The hook from button 4 has been called", "red");
+});
+
+state.onStateChanged(9, function (value) {
+	addLog("The hook from button 9 has been called", "blue");
+});
+		</pre>
+		</div>
 	</body>
 </html>
